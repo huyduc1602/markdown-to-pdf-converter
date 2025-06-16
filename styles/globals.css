@@ -1,0 +1,371 @@
+:root {
+  --primary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --body-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  --border-radius: 15px;
+  --primary-color: #4facfe;
+  --secondary-color: #764ba2;
+  --text-light: #ffffff;
+  --text-dark: #333333;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: var(--body-gradient);
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.header {
+  background: var(--primary-gradient);
+  color: var(--text-light);
+  padding: 30px;
+  text-align: center;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2.5em;
+  font-weight: 300;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.header p {
+  margin: 10px 0 0 0;
+  opacity: 0.9;
+  font-size: 1.1em;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .content {
+    flex-direction: row;
+  }
+}
+
+.editor-container {
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .editor-container {
+    margin-right: 20px;
+    margin-bottom: 0;
+  }
+}
+
+.preview-container {
+  flex: 1;
+  background: #f9f9f9;
+  border-radius: var(--border-radius);
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Fullscreen styles */
+.preview-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  border-radius: 0;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.fullscreen-btn {
+  background: transparent;
+  border: none;
+  color: var(--primary-color)!important;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 5px;
+  transition: all 0.2s;
+}
+
+.fullscreen-btn:hover {
+  color: var(--secondary-color)!important;
+  transform: scale(1.1);
+}
+
+.toolbar {
+  display: flex;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  color: var(--text-light);
+}
+
+.share-btn {
+  background: linear-gradient(135deg, #ffb347 0%, #ffcc33 100%);
+  color: #333;
+  font-weight: bold;
+  border: 2px solid #ffe066;
+}
+.share-btn:hover {
+  background: linear-gradient(135deg, #ffe066 0%, #ffb347 100%);
+  color: #222;
+}
+
+/* Full page preview mode */
+.preview-fullpage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #f9f9f9;
+  z-index: 2000;
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.preview-fullpage .preview-container {
+  max-width: 900px;
+  margin: 40px auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+}
+.preview-fullpage .preview-title {
+  font-size: 2rem;
+  margin-bottom: 24px;
+}
+
+.btn svg {
+  margin-right: 8px;
+}
+
+.sample-btn {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+}
+
+.upload-btn {
+  background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+}
+
+.preview-btn {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.convert-btn {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.markdown-input {
+  width: 100%;
+  height: 400px;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  border: 1px solid #ddd;
+  font-family: 'Consolas', 'Monaco', monospace;
+  resize: vertical;
+  transition: border 0.3s;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.markdown-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+}
+
+.preview-title {
+  margin-top: 0;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  color: var(--text-dark);
+  margin-bottom: 0;
+}
+
+.preview-content {
+  overflow-y: auto;
+  max-height: 600px;
+  padding: 10px;
+  line-height: 1.6;
+}
+
+.preview-container.fullscreen .preview-content {
+  max-height: calc(100vh - 100px);
+}
+
+.preview-content h1, 
+.preview-content h2, 
+.preview-content h3 {
+  color: #333;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.preview-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 15px 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.preview-content th, 
+.preview-content td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.preview-content th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.preview-content code {
+  background-color: #f5f5f5;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.9em;
+}
+
+.preview-content pre {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+.preview-content blockquote {
+  border-left: 4px solid #ddd;
+  padding-left: 15px;
+  margin-left: 0;
+  color: #666;
+}
+
+/* Mermaid diagram styles */
+.preview-content .mermaid {
+  text-align: center;
+  margin: 30px 0;
+  overflow-x: auto;
+  background: #fff;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  max-width: 100%;
+}
+
+.preview-content .mermaid svg {
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* Improve the look of flowchart and ER diagrams */
+.preview-content .mermaid .er.entityBox {
+  fill: #f0f8ff;
+  stroke: #3498db;
+}
+
+.preview-content .mermaid .er.relationshipLabelBox {
+  fill: #f6f8fa;
+}
+
+.preview-content .mermaid .er.relationshipLine {
+  stroke: #34495e;
+  stroke-width: 1.5;
+}
+
+.preview-content .mermaid .flowchart-link {
+  stroke: #3498db;
+  stroke-width: 2;
+}
+
+.preview-content .mermaid .edgeLabel {
+  background-color: white;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.mermaid-error {
+  color: #d9534f;
+  background: #f9f2f4;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+  margin: 10px 0;
+  border-left: 4px solid #d9534f;
+}
+
+.status-bar {
+  margin-bottom: 10px;
+  height: 24px;
+}
+
+.status-message {
+  font-size: 14px;
+  padding: 4px 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.footer {
+  background: #f1f1f1;
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9em;
+}
