@@ -24,10 +24,10 @@ export default function Home() {
         try {
           const decoded = LZString.decompressFromEncodedURIComponent(md);
           setMarkdown(decoded || "");
-          setStatus("✅ Loaded content from share link!");
+          setStatus("✅ Đã tải nội dung từ liên kết chia sẻ!");
           setIsSharePreview(true);
         } catch {
-          setStatus("⚠️ Cannot decode content from link!");
+          setStatus("⚠️ Không thể giải mã nội dung từ liên kết!");
         }
       }
     }
@@ -66,17 +66,17 @@ export default function Home() {
   // Generate share link (compressed)
   const handleShare = () => {
     if (!markdown.trim()) {
-      setStatus("⚠️ Please enter Markdown content to share");
+      setStatus("⚠️ Vui lòng nhập nội dung Markdown để chia sẻ");
       return;
     }
     try {
       const compressed = LZString.compressToEncodedURIComponent(markdown);
       const url = `${window.location.origin}${window.location.pathname}?md=${compressed}`;
       setShareUrl(url);
-      setStatus("✅ Share link created!");
+      setStatus("✅ Đã tạo liên kết chia sẻ!");
       if (navigator.clipboard) navigator.clipboard.writeText(url);
     } catch {
-      setStatus("⚠️ Cannot create share link!");
+      setStatus("⚠️ Không thể tạo liên kết chia sẻ!");
     }
   };
 
@@ -120,7 +120,7 @@ flowchart TD
 |----------|----------|
 | Data 1   | Data 2   |`;
     setMarkdown(sample);
-    setStatus("✅ Sample content loaded!");
+    setStatus("✅ Đã tải nội dung mẫu!");
   };
 
   // Preview markdown
@@ -128,12 +128,12 @@ flowchart TD
     const mdText =
       typeof customMarkdown === "string" ? customMarkdown : markdown;
     if (!mdText.trim()) {
-      setStatus("⚠️ Please enter Markdown content");
+      setStatus("⚠️ Vui lòng nhập nội dung Markdown");
       setPreviewNodes([]);
       return;
     }
 
-    setStatus("Rendering preview...");
+    setStatus("Đang hiển thị xem trước...");
 
     const tokens = marked.lexer(mdText);
     const nodes = [];
@@ -221,7 +221,7 @@ flowchart TD
       }
     });
     setPreviewNodes(nodes);
-    setStatus("✅ Preview updated!");
+    setStatus("✅ Đã cập nhật xem trước!");
   };
 
   // Render Mermaid diagrams for PDF export
@@ -249,10 +249,10 @@ flowchart TD
   // Convert to PDF
   const convertToPDF = async () => {
     if (!markdown.trim()) {
-      setStatus("⚠️ Please enter Markdown content");
+      setStatus("⚠️ Vui lòng nhập nội dung Markdown");
       return;
     }
-    setStatus("Generating PDF...");
+    setStatus("Đang tạo file PDF...");
 
     try {
       let html = marked.parse(markdown);
@@ -282,15 +282,15 @@ flowchart TD
           const html2pdf = (await import("html2pdf.js")).default;
           await html2pdf().from(tempDiv).set(options).save();
           document.body.removeChild(tempDiv);
-          setStatus("✅ PDF downloaded successfully!");
+          setStatus("✅ Đã tải file PDF thành công!");
         } catch (error) {
           console.error("PDF generation error:", error);
-          setStatus(`⚠️ PDF generation error: ${error.message}`);
+          setStatus(`⚠️ Lỗi tạo file PDF: ${error.message}`);
         }
       }, 500);
     } catch (error) {
       console.error("Error during PDF preparation:", error);
-      setStatus(`⚠️ PDF preparation error: ${error.message}`);
+      setStatus(`⚠️ Lỗi chuẩn bị file PDF: ${error.message}`);
     }
   };
 
