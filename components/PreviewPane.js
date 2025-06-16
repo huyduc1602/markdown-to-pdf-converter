@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { FaExpand, FaCompress } from "react-icons/fa";
 
-const PreviewPane = ({ previewNodes }) => {
+const PreviewPane = ({ previewNodes, isSharePreview }) => {
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  // Toggle full screen mode
+  // If in share preview mode, always allow fullscreen toggle
+  const canFullScreen = true;
+
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
   };
@@ -13,15 +15,17 @@ const PreviewPane = ({ previewNodes }) => {
     <div className={`preview-container ${isFullScreen ? "fullscreen" : ""}`}>
       <div className="preview-header">
         <h3 className="preview-title">Xem trước</h3>
-        <button
-          onClick={toggleFullScreen}
-          className="btn fullscreen-btn"
-          aria-label={
-            isFullScreen ? "Thoát chế độ toàn màn hình" : "Xem toàn màn hình"
-          }
-        >
-          {isFullScreen ? <FaCompress /> : <FaExpand />}
-        </button>
+        {canFullScreen && (
+          <button
+            onClick={toggleFullScreen}
+            className="btn fullscreen-btn"
+            aria-label={
+              isFullScreen ? "Thoát chế độ toàn màn hình" : "Xem toàn màn hình"
+            }
+          >
+            {isFullScreen ? <FaCompress /> : <FaExpand />}
+          </button>
+        )}
       </div>
       <div id="preview-content" className="preview-content">
         {previewNodes}

@@ -5,6 +5,7 @@ import MarkdownEditor from "../components/MarkdownEditor";
 import PreviewPane from "../components/PreviewPane";
 import MermaidBlock from "../components/MermaidBlock";
 import { marked } from "marked";
+import LZString from "lz-string";
 
 export default function Home() {
   const [status, setStatus] = useState("");
@@ -21,8 +22,8 @@ export default function Home() {
       const md = params.get("md");
       if (md) {
         try {
-          const decoded = decodeURIComponent(atob(md));
-          setMarkdown(decoded);
+          const decoded = LZString.decompressFromEncodedURIComponent(md);
+          setMarkdown(decoded || "");
           setStatus("✅ Loaded content from share link!");
           setIsSharePreview(true);
         } catch {
@@ -62,15 +63,15 @@ export default function Home() {
     }
   }, []);
 
-  // Generate share link
+  // Generate share link (compressed)
   const handleShare = () => {
     if (!markdown.trim()) {
       setStatus("⚠️ Please enter Markdown content to share");
       return;
     }
     try {
-      const encoded = btoa(encodeURIComponent(markdown));
-      const url = `${window.location.origin}${window.location.pathname}?md=${encoded}`;
+      const compressed = LZString.compressToEncodedURIComponent(markdown);
+      const url = `${window.location.origin}${window.location.pathname}?md=${compressed}`;
       setShareUrl(url);
       setStatus("✅ Share link created!");
       if (navigator.clipboard) navigator.clipboard.writeText(url);
@@ -316,7 +317,10 @@ flowchart TD
             onShare={handleShare}
           />
         )}
-        <PreviewPane previewNodes={previewNodes} />
+        <PreviewPane
+          previewNodes={previewNodes}
+          isSharePreview={isSharePreview}
+        />
       </div>
       {!isSharePreview && (
         <div className="footer">
@@ -332,7 +336,8 @@ flowchart TD
             </div>
           )}
           <p>
-            © {new Date().getFullYear()} Markdown to PDF Converter. All rights reserved.
+            © {new Date().getFullYear()} Markdown to PDF Converter. All rights
+            reserved.
           </p>
         </div>
       )}

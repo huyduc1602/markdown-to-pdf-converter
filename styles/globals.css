@@ -84,18 +84,37 @@ body {
   position: relative;
 }
 
-/* Fullscreen styles */
+/* Fullscreen styles - force preview to cover the entire viewport, including in share mode */
 .preview-container.fullscreen {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  width: 100%;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  border-radius: 0!important;
+  padding: 0!important;
+  margin: 0!important;
+  background: #fff!important;
+  box-shadow: none!important;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%!important;
+}
+
+.preview-container.fullscreen .preview-header {
+  padding: 24px 32px 0 32px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  z-index: 2;
+}
+
+.preview-container.fullscreen .preview-content {
+  max-height: none;
   height: 100%;
-  z-index: 1000;
-  border-radius: 0;
-  padding: 30px;
+  padding: 32px;
   overflow-y: auto;
 }
 
