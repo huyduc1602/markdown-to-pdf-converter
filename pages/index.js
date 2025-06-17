@@ -246,6 +246,18 @@ flowchart TD
     return doc.body.innerHTML;
   };
 
+  // Convert SVG to PNG (returns a data URL)
+  async function svgToPngDataUrl(svgString, width, height) {
+    const { Canvg } = await import("canvg");
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    const v = await Canvg.fromString(ctx, svgString);
+    await v.render();
+    return canvas.toDataURL("image/png");
+  }
+
   // Convert to PDF
   const convertToPDF = async () => {
     if (!markdown.trim()) {
@@ -265,6 +277,44 @@ flowchart TD
       tempDiv.style.width = "210mm";
       document.body.appendChild(tempDiv);
 
+      // Import mermaid directly and render all diagrams to SVG before exporting
+      const mermaidMod = await import("mermaid");
+      const mermaid = mermaidMod.default || mermaidMod;
+      const mermaidDivs = tempDiv.querySelectorAll(".mermaid");
+      let renderPromises = [];
+      mermaidDivs.forEach((div, idx) => {
+        const chart = div.textContent;
+        const id = `pdf-mermaid-svg-${idx}`;
+        renderPromises.push(
+          mermaid
+            .render(id, chart)
+            .then(async ({ svg }) => {
+              // Convert SVG to PNG and replace SVG with <img>
+              const svgEl = new DOMParser().parseFromString(
+                svg,
+                "image/svg+xml"
+              ).documentElement;
+              // Estimate width/height
+              let width = parseInt(svgEl.getAttribute("width")) || 800;
+              let height = parseInt(svgEl.getAttribute("height")) || 400;
+              // If width/height are in percent or not set, fallback to default
+              if (isNaN(width)) width = 800;
+              if (isNaN(height)) height = 400;
+              const pngUrl = await svgToPngDataUrl(svg, width, height);
+              const img = document.createElement("img");
+              img.src = pngUrl;
+              img.style.maxWidth = "100%";
+              img.style.display = "block";
+              div.parentNode.replaceChild(img, div);
+            })
+            .catch(() => {
+              div.innerHTML =
+                '<div style="color:#b00">Mermaid render error</div>';
+            })
+        );
+      });
+      await Promise.all(renderPromises);
+
       setTimeout(async () => {
         try {
           const options = {
@@ -275,6 +325,9 @@ flowchart TD
               scale: 2,
               useCORS: true,
               logging: false,
+              backgroundColor: "#fff",
+              allowTaint: true,
+              useCORS: true,
             },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           };
