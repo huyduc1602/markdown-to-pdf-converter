@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import Header from "../components/Header";
 import MarkdownEditor from "../components/MarkdownEditor";
 import PreviewPane from "../components/PreviewPane";
@@ -14,6 +15,7 @@ export default function Home() {
   const [isSharePreview, setIsSharePreview] = useState(false);
   const [previewNodes, setPreviewNodes] = useState([]);
   const previewRef = useRef();
+  const router = useRouter();
 
   // On page load, if ?md= exists in URL, decode and set markdown, enable preview-only mode
   useEffect(() => {
@@ -348,17 +350,21 @@ flowchart TD
   };
 
   return (
-    <div className={isSharePreview ? "preview-fullpage" : "container"}>
+    <div className="container">
       <Head>
         <title>Markdown to PDF Converter</title>
-        <meta
-          name="description"
-          content="Online tool to convert Markdown to PDF"
-        />
-        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
       </Head>
-      {!isSharePreview && <Header />}
-      <div className={isSharePreview ? undefined : "content"}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16, marginTop: 10, marginRight: 10 }}>
+        <button onClick={() => router.push('/drawio-to-mermaid')} style={{ padding: '8px 16px', borderRadius: 6, background: '#667eea', color: '#fff', border: 'none', cursor: 'pointer' }}>
+          Chuyển đổi Draw.io (xml) → Mermaid
+        </button>
+      </div>
+      {/* ...existing main UI... */}
+      <div className="content">
         {!isSharePreview && (
           <MarkdownEditor
             markdown={markdown}
