@@ -1,23 +1,21 @@
 import Head from "next/head";
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Header from "../components/Header";
 import MarkdownEditor from "../components/MarkdownEditor";
 import PreviewPane from "../components/PreviewPane";
-import MermaidBlock from "../components/MermaidBlock";
-import { marked } from "marked";
+import { renderMarkdownPreview } from "../components/MarkdownPreview";
 import LZString from "lz-string";
+import Script from "next/script";
 
 export default function Home() {
+  // State for markdown content, status, sharing, and preview
   const [status, setStatus] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [shareUrl, setShareUrl] = useState("");
   const [isSharePreview, setIsSharePreview] = useState(false);
   const [previewNodes, setPreviewNodes] = useState([]);
-  const previewRef = useRef();
   const router = useRouter();
-
-  // On page load, if ?md= exists in URL, decode and set markdown, enable preview-only mode
+  // Load markdown from share link if present
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -35,14 +33,14 @@ export default function Home() {
     }
   }, []);
 
-  // Ensure preview is rendered after markdown is set from shared link
+  // Render preview after loading shared markdown
   useEffect(() => {
     if (isSharePreview && markdown) {
-      previewContent(markdown);
+      handlePreview(markdown);
     }
   }, [isSharePreview, markdown]);
 
-  // Initialize mermaid once
+  // Initialize Mermaid only once
   useEffect(() => {
     if (typeof window !== "undefined") {
       import("mermaid").then((mod) => {
@@ -64,24 +62,37 @@ export default function Home() {
       });
     }
   }, []);
-
-  // Generate share link (compressed)
-  const handleShare = () => {
+  // Generate shareable link for current markdown using TinyURL
+  const handleShare = async () => {
     if (!markdown.trim()) {
       setStatus("⚠️ Vui lòng nhập nội dung Markdown để chia sẻ");
       return;
     }
     try {
+      setStatus("Đang tạo liên kết chia sẻ...");
       const compressed = LZString.compressToEncodedURIComponent(markdown);
-      const url = `${window.location.origin}${window.location.pathname}?md=${compressed}`;
-      setShareUrl(url);
-      setStatus("✅ Đã tạo liên kết chia sẻ!");
-      if (navigator.clipboard) navigator.clipboard.writeText(url);
+      const fullUrl = `${window.location.origin}${window.location.pathname}?md=${compressed}`;
+      
+      // Use TinyURL to shorten the link
+      const tinyUrlResponse = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullUrl)}`);
+      const shortUrl = await tinyUrlResponse.text();
+      
+      if (shortUrl && shortUrl.startsWith('https://tinyurl.com/')) {
+        setShareUrl(shortUrl);
+        setStatus("✅ Đã tạo liên kết chia sẻ ngắn!");
+        if (navigator.clipboard) navigator.clipboard.writeText(shortUrl);
+      } else {
+        // Fallback to original URL if TinyURL fails
+        setShareUrl(fullUrl);
+        setStatus("✅ Liên kết chia sẻ đã được tạo!");
+        if (navigator.clipboard) navigator.clipboard.writeText(fullUrl);
+      }
     } catch {
       setStatus("⚠️ Không thể tạo liên kết chia sẻ!");
     }
   };
 
+  // Load sample markdown content
   const loadSampleContent = () => {
     const sample = `# Main Title
 
@@ -125,105 +136,17 @@ flowchart TD
     setStatus("✅ Đã tải nội dung mẫu!");
   };
 
-  // Preview markdown
-  const previewContent = async (customMarkdown) => {
-    const mdText =
-      typeof customMarkdown === "string" ? customMarkdown : markdown;
+  // Render markdown preview as React nodes
+  const handlePreview = (customMarkdown) => {
+    const mdText = typeof customMarkdown === "string" ? customMarkdown : markdown;
     if (!mdText.trim()) {
       setStatus("⚠️ Vui lòng nhập nội dung Markdown");
       setPreviewNodes([]);
       return;
     }
-
-    setStatus("Đang hiển thị xem trước...");
-
-    const tokens = marked.lexer(mdText);
-    const nodes = [];
-    tokens.forEach((token, idx) => {
-      if (token.type === "code" && token.lang === "mermaid") {
-        nodes.push(<MermaidBlock key={"mermaid-" + idx} chart={token.text} />);
-      } else if (token.type === "paragraph") {
-        nodes.push(
-          <p
-            key={idx}
-            dangerouslySetInnerHTML={{ __html: marked.parseInline(token.text) }}
-          />
-        );
-      } else if (token.type === "heading") {
-        const Tag = `h${token.depth}`;
-        nodes.push(
-          <Tag key={idx} dangerouslySetInnerHTML={{ __html: token.text }} />
-        );
-      } else if (token.type === "list") {
-        const ListTag = token.ordered ? "ol" : "ul";
-        nodes.push(
-          <ListTag key={idx}>
-            {token.items.map((item, i) => (
-              <li
-                key={i}
-                dangerouslySetInnerHTML={{
-                  __html: marked.parseInline(item.text),
-                }}
-              />
-            ))}
-          </ListTag>
-        );
-      } else if (token.type === "table") {
-        nodes.push(
-          <table key={idx}>
-            <thead>
-              <tr>
-                {token.header.map((cell, i) => (
-                  <th
-                    key={i}
-                    dangerouslySetInnerHTML={{
-                      __html: marked.parseInline(
-                        typeof cell === "string" ? cell : cell?.text || ""
-                      ),
-                    }}
-                  />
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {token.rows.map((row, rIdx) => (
-                <tr key={rIdx}>
-                  {row.map((cell, cIdx) => (
-                    <td
-                      key={cIdx}
-                      dangerouslySetInnerHTML={{
-                        __html: marked.parseInline(
-                          typeof cell === "string" ? cell : cell?.text || ""
-                        ),
-                      }}
-                    />
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        );
-      } else if (token.type === "html") {
-        nodes.push(
-          <div key={idx} dangerouslySetInnerHTML={{ __html: token.text }} />
-        );
-      } else if (token.type === "space") {
-        nodes.push(<br key={idx} />);
-      } else if (token.type === "blockquote") {
-        nodes.push(<blockquote key={idx}>{token.text}</blockquote>);
-      } else {
-        if (typeof token.raw === "string" && token.raw.trim()) {
-          nodes.push(
-            <div
-              key={idx}
-              dangerouslySetInnerHTML={{ __html: marked.parse(token.raw) }}
-            />
-          );
-        }
-      }
-    });
-    setPreviewNodes(nodes);
-    setStatus("✅ Đã cập nhật xem trước!");
+    setStatus("Đang hiển thị bản xem trước...");
+    setPreviewNodes(renderMarkdownPreview(mdText));
+    setStatus("✅ Đã cập nhật bản xem trước!");
   };
 
   // Render Mermaid diagrams for PDF export
@@ -354,32 +277,31 @@ flowchart TD
       <Head>
         <title>Markdown to PDF Converter</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
       </Head>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16, marginTop: 10, marginRight: 10 }}>
-        <button onClick={() => router.push('/drawio-to-mermaid')} style={{ padding: '8px 16px', borderRadius: 6, background: '#667eea', color: '#fff', border: 'none', cursor: 'pointer' }}>
-          Chuyển đổi Draw.io (xml) → Mermaid
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js" strategy="beforeInteractive" />
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js" strategy="beforeInteractive" />
+      <Script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" strategy="beforeInteractive" />
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16, marginTop: 10, marginRight: 10 }}>
+        <button
+          onClick={() => router.push("/drawio-to-mermaid")}
+          style={{ padding: "8px 16px", borderRadius: 6, background: "#667eea", color: "#fff", border: "none", cursor: "pointer" }}
+        >
+          Draw.io (xml) → Mermaid
         </button>
       </div>
-      {/* ...existing main UI... */}
       <div className="content">
         {!isSharePreview && (
           <MarkdownEditor
             markdown={markdown}
             setMarkdown={setMarkdown}
-            previewContent={previewContent}
+            previewContent={handlePreview}
             loadSampleContent={loadSampleContent}
             convertToPDF={convertToPDF}
             status={status}
             onShare={handleShare}
           />
         )}
-        <PreviewPane
-          previewNodes={previewNodes}
-          isSharePreview={isSharePreview}
-        />
+        <PreviewPane previewNodes={previewNodes} isSharePreview={isSharePreview} />
       </div>
       {!isSharePreview && (
         <div className="footer">
@@ -395,8 +317,7 @@ flowchart TD
             </div>
           )}
           <p>
-            © {new Date().getFullYear()} Markdown to PDF Converter. All rights
-            reserved.
+            © {new Date().getFullYear()} Markdown to PDF Converter. All rights reserved.
           </p>
         </div>
       )}
