@@ -82,6 +82,7 @@ body {
   box-shadow: 0 5px 15px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
 /* Fullscreen styles - force preview to cover the entire viewport, including in share mode */
